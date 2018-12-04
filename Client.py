@@ -44,27 +44,6 @@ server_bindingRS = (rs_ip, RsPort)
 rs.connect(server_bindingRS) # RS will be waiting for connection
 print ("[C]:  Connected to RS Server")
 
-# TLDS1 Socket
-try:
-	TLDS1 = mysoc.socket(mysoc.AF_INET, mysoc.SOCK_STREAM)
-	print("[RS]: Socket for TS_COM created")
-except mysoc.error as err:
-	print('{} \n'.format("socket open error (TSLDS1)", err))
-
-# TLDS2 SOCKET
-try:
-	TLDS2 = mysoc.socket(mysoc.AF_INET, mysoc.SOCK_STREAM)
-	print("[RS]: Socket for TS_EDU created")
-except mysoc.error as err:
-	print('{} \n'.format("TS socket open error ", err))
-	
-#FIXME will need to change when testing on different machine- not my host
-#FIXME can hard code the name of the host here
-TLDS1HostName = mysoc.gethostname() #65500
-TLDS2HostName = mysoc.gethostname() #60000
-TLDS1HostConnected = False
-TLDS2HostConnected = False
-
 
 # Import from file
 inPath = DNS_HNS_TXT
