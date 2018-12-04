@@ -61,56 +61,81 @@ csockid.send("NumLookups received".encode('utf-8'))
 
 while 1:
 	print("=========== LOOKUP ==============")
-	data_from_client = csockid.recv(100)
-	data_from_client2 = csockid.recv(100)
+	data_from_client = csockid.recv(1024)
+	#data_from_client2 = csockid.recv(100)
 
 	if not data_from_client:
 		print("BREAKING");
 		break
-	challange = data_from_client.decode('utf-8')
-	digest = data_from_client2.decode('utf-8')
-	print("[RS] DNS received from Client Challange:[" + challange)
-	print("[RS] DNS received from Client Digest: " + digest)
-	
-	if not TLDS1HostConnected:
-		TLDS1HostConnected = True
-		TLDS1Port = 65500
-		TLDS1_ip = mysoc.gethostbyname(TLDS1HostName)
-		server_bindingTLDS1 = (TLDS1_ip, TLDS1Port)
-		TLDS1.connect(server_bindingTLDS1)
-		print("[C]: Connected to TLDS1 Server")
-	if not TLDS2HostConnected:
-		TLDS2HostConnected = True
-		TLDS2Port = 60000
-		TLDS2_ip = mysoc.gethostbyname(TLDS2HostName)
-		server_bindingTLDS2 = (TLDS2_ip, TLDS2Port)
-		TLDS2.connect(server_bindingTLDS2)
-		print("[C]: Connected to TLDS1 Server")
 		
-	# send the hostname to both TLDS Servers 1
-	print("[RS > TLDS1] sending: " + challange)
-	TLDS1.send(challange.encode('utf-8'))
-	data_from_TLDS1 = TLDS1.recv(1024)
-	print("[RS < TLDS1] received:  ", data_from_TLDS1.decode('utf-8'))
-	msgTLDS1 = data_from_TLDS1.decode('utf-8')
+	msg = data_from_client.decode('utf-8')
+	print(msg)
+	if msg == "Sending Challenge":
+		# send ack back
+		csockid.send("Ready for Challenge".encode('utf-8'))
+		data_from_client = csockid.recv(100)
+		data_from_client2 = csockid.recv(100)
+		
+		challange = data_from_client.decode('utf-8')
+		digest = data_from_client2.decode('utf-8')
+		print("[RS] DNS received from Client Challenge:[" + challange)
+		print("[RS] DNS received from Client Digest: " + digest)
+		
+		if not TLDS1HostConnected:
+			TLDS1HostConnected = True
+			TLDS1Port = 65500
+			TLDS1_ip = mysoc.gethostbyname(TLDS1HostName)
+			server_bindingTLDS1 = (TLDS1_ip, TLDS1Port)
+			TLDS1.connect(server_bindingTLDS1)
+			print("[C]: Connected to TLDS1 Server")
+		if not TLDS2HostConnected:
+			TLDS2HostConnected = True
+			TLDS2Port = 60000
+			TLDS2_ip = mysoc.gethostbyname(TLDS2HostName)
+			server_bindingTLDS2 = (TLDS2_ip, TLDS2Port)
+			TLDS2.connect(server_bindingTLDS2)
+			print("[C]: Connected to TLDS1 Server")
+		
+		# send the hostname to both TLDS Servers 1
+		
+		print("[RS > TLDS1] sending: " + challange)
+		TLDS1.send("Sending Challenge".encode('utf-8'))
+		TLDS1.recv(1024)
+		TLDS1.send(challange.encode('utf-8'))
+		data_from_TLDS1 = TLDS1.recv(1024)
+		print("[RS < TLDS1] received:  ", data_from_TLDS1.decode('utf-8'))
+		msgTLDS1 = data_from_TLDS1.decode('utf-8')
+		
+		# send the hostname to both TLDS Servers 2
+		print("[RS > TLDS2] sending: " + challange)
+		TLDS2.send("Sending Challenge".encode('utf-8'))
+		TLDS2.recv(1024)
+		TLDS2.send(challange.encode('utf-8'))
+		data_from_TLDS2 = TLDS2.recv(1024)
+		print("[RS < TLDS2] received:  ", data_from_TLDS2.decode('utf-8'))
+		msgTLDS2 = data_from_TLDS2.decode('utf-8')
+		
+		# which ever is a match we send the host name of that TLDS server
+		if msgTLDS1 == digest:
+			print("WE FOUND A MATH FROM TLDS1 BOIIIII");
+			TLDS1.send("WaitForClient".encode('utf-8'))
+			TLDS2.send("DoNotWait".encode('utf-8'))
+			csockid.send("TLDS1".encode('utf-8'))
+		elif msgTLDS2 == digest:
+			print("TLDS2 BOIIIII BABYYYYY");
+			TLDS1.send("DoNotWait".encode('utf-8'))
+			TLDS2.send("WaitForClient".encode('utf-8'))
+			csockid.send("TLDS2".encode('utf-8'))
+		else:
+			TLDS1.send("DoNotWait".encode('utf-8'))
+			TLDS2.send("DoNotWait".encode('utf-8'))
+			csockid.send("NOT FOUND IN ANY".encode('utf-8'))
 	
-	# send the hostname to both TLDS Servers 2
-	print("[RS > TLDS2] sending: " + challange)
-	TLDS2.send(challange.encode('utf-8'))
-	data_from_TLDS2 = TLDS2.recv(1024)
-	print("[RS < TLDS2] received:  ", data_from_TLDS2.decode('utf-8'))
-	msgTLDS2 = data_from_TLDS2.decode('utf-8')
 	
-	#which ever is a match we send the host name of that TLDS server
-	if msgTLDS1 == digest:
-		print("WE FOUND A MATH FROM TLDS1 BOIIIII");
-		csockid.send("TLDS1".encode('utf-8'))
-	elif msgTLDS2 == digest:
-		print("TLDS2 BOIIIII BABYYYYY");
-		csockid.send("TLDS2".encode('utf-8'))
-	else:
-		csockid.send("NOT FOUND IN ANY".encode('utf-8'))
-
+	
+	elif msg == "Terminate All":
+		print()
+		
 	# 	if "com" in msg:
 	# 		print("must connect to COM: ", msg)
 	# 		if not COMHostConnected:
@@ -164,7 +189,9 @@ while 1:
 
 # Close the server socket
 ss.close()
+TLDS1.send("Terminate".encode('utf-8'))
 TLDS1.close()
+TLDS2.send("Terminate".encode('utf-8'))
 TLDS2.close()
 print("#### CLOSE RS SERVER")
 exit()

@@ -12,56 +12,70 @@ def fileLineCount(path):
 	return val
 
 
-# FIRST Socket | to RS server
+# Socket to AS server
 try:
-	rs = mysoc.socket(mysoc.AF_INET, mysoc.SOCK_STREAM)
+	as_soc = mysoc.socket(mysoc.AF_INET, mysoc.SOCK_STREAM)
 	print("[C]: Socket for RS created")
 except mysoc.error as err:
 	print('{} \n'.format("socket open error ", err))
-	
-# # SECOND SOCKET
-# try:
-# 	ts = mysoc.socket(mysoc.AF_INET, mysoc.SOCK_STREAM)
-# 	print("[C]: Socket for TS created")
-# except mysoc.error as err:
-# 	print('{} \n'.format("TS socket open error ", err))
 
-DNS_HNS_TXT = 'PROJ3-HNS.txt'
+#Socket to TLDS1
+try:
+	tlds1 = mysoc.socket(mysoc.AF_INET, mysoc.SOCK_STREAM)
+	print("[C]: Socket for TLDS1 created")
+except mysoc.error as err:
+	print('{} \n'.format("socket open error ", err))
 
-#Port for RS
-RsPort = 50020
+#Socket to TLDS2
+try:
+	tlds2 = mysoc.socket(mysoc.AF_INET, mysoc.SOCK_STREAM)
+	print("[C]: Socket for TLDS1 created")
+except mysoc.error as err:
+	print('{} \n'.format("socket open error ", err))
+
+
+
+#Port for AS
+asPort = 50020
 
 # Client Host/IP setup
 clientHost = mysoc.gethostname()
-print("[C]: Client name is: " , clientHost)
+print("[C]: Client name is: ", clientHost)
 clientIP = mysoc.gethostbyname(mysoc.gethostname())
-print("[C]: Client IP is: " , clientIP)
+print("[C]: Client IP is: ", clientIP)
 
-# connect to RS_SERVER
-rs_ip = mysoc.gethostbyname(mysoc.gethostname())
-print(rs_ip)
-server_bindingRS = (rs_ip, RsPort)
-rs.connect(server_bindingRS) # RS will be waiting for connection
-print ("[C]:  Connected to RS Server")
+# connect to AS_SERVER
+as_ip = mysoc.gethostbyname(mysoc.gethostname())
+print(as_ip)
+server_bindingAS = (as_ip, asPort)
+as_soc.connect(server_bindingAS) # RS will be waiting for connection
+print ("[C]:  Connected to AS Server")
 
 
+#TextFiles
+DNS_HNS_TXT = 'PROJ3-HNS.txt'
 # Import from file
 inPath = DNS_HNS_TXT
 numLinesInFile = fileLineCount(inPath)
 inFile = open(inPath, 'r')
 print("Num Of Lines in HNS: " + str(numLinesInFile))
 
-rs.send(str(numLinesInFile).encode('utf-8'))
-data_from_server = rs.recv(100)
+
+#Send number of lines to AS
+as_soc.send(str(numLinesInFile).encode('utf-8'))
+data_from_server = as_soc.recv(100)
 msg = data_from_server.decode('utf-8')
-print("[C < RS]: Response: " + msg)
+print("[C < AS]: Response: " + msg)
 # send num of lookups
 
 #create a file to output the data
 fileOut = open("Resolved.txt", "w")
 tsConnected = False
+
+tlds1Connected = False
+tlds2Connected = False
 while True:
-	# Each iteration = one lookup in TS/RS
+	# Each iteration = one lookup in AS
 	inLine = inFile.readline()
 	if not inLine:
 		break
@@ -75,15 +89,73 @@ while True:
 	challange = splitList[1].strip()
 	
 	#now send the challange string [1] and the dijest
-	rs.send(challange.encode('utf-8'))
+	as_soc.send("Sending Challenge".encode('utf-8'))
+	as_soc.recv(1024)
+	
+	as_soc.send(challange.encode('utf-8'))
 	print("[C > RS] Line Sent: ["+challange +"]")
-	rs.send(digest.encode('utf-8'))
+	as_soc.send(digest.encode('utf-8'))
 	print("[C > RS] Line Sent: " + digest)
 
 
-	data_from_server = rs.recv(1024)
+	data_from_server = as_soc.recv(1024)
 	msg = data_from_server.decode('utf-8')
 	print("[C < RS]: Response : " + msg)
+	
+	
+
+	if msg == "TLDS1":
+		if not tlds1Connected:
+			tlds1Connected = True
+			tlds1Port = 40000
+			tlds1_ip = mysoc.gethostbyname(mysoc.gethostname())  # FIXME CHANGE TO TLDS LOCATION
+			print(tlds1_ip)
+			server_bindingTLDS1 = (tlds1_ip, tlds1Port)
+			tlds1.connect(server_bindingTLDS1)  # RS will be waiting for connection
+			print("[C]:  Connected to TLDS1 Server")
+		
+		#Confirmation who this is
+		msg = "ThisClient"
+		tlds1.send(msg.encode('utf-8'))
+		print("[C > TLDS1]: " + str(msg))
+		msgRecv = tlds1.recv(1024).decode('utf-8')
+		print("[C < TLDS1]: " + str(msgRecv))
+		# FIXME OUTPUT TO FILE
+		# send request for item
+		
+		# recieve IP
+		
+		# Print to Resolved.txt
+		#tlds.close()
+	elif msg == "TLDS2":
+		if not tlds2Connected:
+			tlds2Connected = True
+			tlds2Port = 40100
+			tlds2_ip = mysoc.gethostbyname(mysoc.gethostname())  # FIXME CHANGE TO TLDS LOCATION
+			print(tlds2_ip)
+			server_bindingTLDS = (tlds2_ip, tlds2Port)
+			tlds2.connect(server_bindingTLDS)  # RS will be waiting for connection
+			print("[C]:  Connected to TLDS2 Server")
+	
+		# Confirmation who this is
+		msg = "ThisClient"
+		tlds2.send(msg.encode('utf-8'))
+		print("[C > TLDS2]: " + str(msg))
+		msgRecv = tlds2.recv(1024).decode('utf-8')
+		print("[C < TLDS2]: " + str(msgRecv))
+		# FIXME OUTPUT TO FILE
+	# === TLDS connection
+	# Socket to AS server
+	
+
+	# connect to AS_SERVER
+	
+	
+	# Create Socket
+	# Open to TLDS based on what was recieved
+	# Connect
+	# Recieve
+	# Close
 	
 	# if msg == "TLDS1":
 	# 	if not TLDS1HostConnected:
@@ -93,7 +165,7 @@ while True:
 	# 		server_bindingTLDS1 = (TLDS1_ip, TLDS1Port)
 	# 		TLDS1.connect(server_bindingTLDS1)
 	# 		print("[C]: Connected to TLDS1 Server")
-	#
+
 	# 	# send the hostname to both TLDS Servers 1
 	# 	print("[C > TLDS1] sending: " + challange)
 	# 	TLDS1.send(splitList[2].encode('utf-8'))
@@ -119,7 +191,7 @@ while True:
 #do not uncomment below
 #ts.send("Kill TS".encode('utf-8'))
 
-rs.close()
+as_soc.close()
 #do not uncomment belo
 #ts.close()
 
