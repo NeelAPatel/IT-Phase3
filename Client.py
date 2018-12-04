@@ -1,4 +1,5 @@
 import socket as mysoc
+import hmac
 
 import sys
 
@@ -10,9 +11,6 @@ def fileLineCount(path):
 	val = index + 1
 	return val
 
-
-print ('Number of arguments:', len(sys.argv), 'arguments.')
-print ('Argument List:', str(sys.argv))
 
 # FIRST Socket | to RS server
 try:
@@ -28,12 +26,7 @@ except mysoc.error as err:
 # except mysoc.error as err:
 # 	print('{} \n'.format("TS socket open error ", err))
 
-if (len(sys.argv) == 3):
-	RS_HOST = sys.argv[1]
-	DNS_HNS_TXT = sys.argv[2]
-else:
-	RS_HOST = mysoc.gethostname()
-	DNS_HNS_TXT = 'PROJ2-HNS.txt'
+DNS_HNS_TXT = 'PROJ3-HNS.txt'
 
 #Port for RS
 RsPort = 50020
@@ -45,13 +38,32 @@ clientIP = mysoc.gethostbyname(mysoc.gethostname())
 print("[C]: Client IP is: " , clientIP)
 
 # connect to RS_SERVER
-rs_ip = mysoc.gethostbyname(RS_HOST)
+rs_ip = mysoc.gethostbyname(mysoc.gethostname())
 print(rs_ip)
 server_bindingRS = (rs_ip, RsPort)
 rs.connect(server_bindingRS) # RS will be waiting for connection
 print ("[C]:  Connected to RS Server")
 
-# Connection established
+# TLDS1 Socket
+try:
+	TLDS1 = mysoc.socket(mysoc.AF_INET, mysoc.SOCK_STREAM)
+	print("[RS]: Socket for TS_COM created")
+except mysoc.error as err:
+	print('{} \n'.format("socket open error (TSLDS1)", err))
+
+# TLDS2 SOCKET
+try:
+	TLDS2 = mysoc.socket(mysoc.AF_INET, mysoc.SOCK_STREAM)
+	print("[RS]: Socket for TS_EDU created")
+except mysoc.error as err:
+	print('{} \n'.format("TS socket open error ", err))
+	
+#FIXME will need to change when testing on different machine- not my host
+#FIXME can hard code the name of the host here
+TLDS1HostName = mysoc.gethostname() #65500
+TLDS2HostName = mysoc.gethostname() #60000
+TLDS1HostConnected = False
+TLDS2HostConnected = False
 
 
 # Import from file
@@ -77,55 +89,59 @@ while True:
 	
 	# Send line to RS
 	inLine = inLine.strip('\n')
-	rs.send(inLine.encode('utf-8'))
-	print("[C > RS] Line Sent: " + inLine)
+	splitList = inLine.split()
+	#take the key [0] and the challange[1] and make the digest
+	d1 = hmac.new(splitList[0].encode(), splitList[1].encode("utf-8"))
+	digest = d1.hexdigest()
+	challange = splitList[1].strip()
 	
-	
+	#now send the challange string [1] and the dijest
+	rs.send(challange.encode('utf-8'))
+	print("[C > RS] Line Sent: ["+challange +"]")
+	rs.send(digest.encode('utf-8'))
+	print("[C > RS] Line Sent: " + digest)
+
+
 	data_from_server = rs.recv(1024)
 	msg = data_from_server.decode('utf-8')
 	print("[C < RS]: Response : " + msg)
 	
-	#split it in 3 and check 3rd portion.
-	
-	# splitList = msg.split()
-	# if splitList[2] == 'NS':
-	# 	if tsConnected == False:
-	# 		tsConnected= True
-	# 		print("[C]: MUST CONNECT TO TS NOW.")
-	# 		TsPort = 60000
-	# 		tsHostName = splitList[0]
-	# 		ts_ip = mysoc.gethostbyname(tsHostName)
-	# 		print("GREP IP IS: ", ts_ip)
-	# 		#FIXME for testing purposes we run on same machine, uncomment for diff machine
-	# 		#server_bindingTS = (ts_ip, TsPort)
-	# 		server_bindingTS = (clientIP, TsPort)
-	# 		ts.connect(server_bindingTS)
-	# 		print("[C]: Connected to TS Server")
+	# if msg == "TLDS1":
+	# 	if not TLDS1HostConnected:
+	# 		TLDS1HostConnected = True
+	# 		TLDS1Port = 40000
+	# 		TLDS1_ip = mysoc.gethostbyname(TLDS1HostName)
+	# 		server_bindingTLDS1 = (TLDS1_ip, TLDS1Port)
+	# 		TLDS1.connect(server_bindingTLDS1)
+	# 		print("[C]: Connected to TLDS1 Server")
 	#
-	# 	#send the hostname to ts
-	# 	print("[C > TS] sending: "  + inLine)
-	# 	ts.send(inLine.encode('utf-8'))
-	# 	data_from_ts = ts.recv(1024)
-	# 	print("[C < TS] received:  ", data_from_ts.decode('utf-8'))
-	# 	msgTS= data_from_ts.decode('utf-8')
-	# 	splitListTS = msgTS.split()
-	#
-	# 	#write to file
-	# 	strToFileTS = msgTS + "\n"
-	# 	fileOut.write(strToFileTS)
-	# else:
-		# output the string to result file
-	strToFile = msg + "\n"
-	fileOut.write(strToFile)
-	print("[C]: Line is VALID: ", msg)
-	
+	# 	# send the hostname to both TLDS Servers 1
+	# 	print("[C > TLDS1] sending: " + challange)
+	# 	TLDS1.send(splitList[2].encode('utf-8'))
+	# 	data_from_TLDS1 = TLDS1.recv(1024)
+	# 	print("[C < TLDS1] received:  ", data_from_TLDS1.decode('utf-8'))
+	# 	msgTLDS1 = data_from_TLDS1.decode('utf-8')
+	# if not TLDS2HostConnected:
+	# 	TLDS2HostConnected = True
+	# 	TLDS2Port = 60000
+	# 	TLDS2_ip = mysoc.gethostbyname(TLDS2HostName)
+	# 	server_bindingTLDS2 = (TLDS2_ip, TLDS2Port)
+	# 	TLDS2.connect(server_bindingTLDS2)
+	# 	print("[C]: Connected to TLDS1 Server")
+
+	# # output the string to result file
+	# strToFile = msg + "\n"
+	# fileOut.write(strToFile)
+	# print("[C]: Line is VALID: ", msg)
+
 	print("")
 
 
-
+#do not uncomment below
 #ts.send("Kill TS".encode('utf-8'))
 
 rs.close()
+#do not uncomment belo
 #ts.close()
 
 
