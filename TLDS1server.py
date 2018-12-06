@@ -103,16 +103,42 @@ while 1:
 			
 		if msg == "WaitForClient":
 			print("CLIENT CONNECTION")
+			
 			if clientConnected == False:
 				clientConnected = True
 				cclientid, addr1 = ts_client.accept()
 				print("[TLDS1]: Got a connection request from to this server: ", addr1)
+			work = cclientid.recv(1024).decode('utf-8')
+			print("[TLDS1 < AS]: should be that this is client: " + str(work))
+			cclientid.send("Ready for Host Name".encode('utf-8'))
+			print("SENT READY FOR HOST")
 			msg = cclientid.recv(1024).decode('utf-8')
-			print("[TLDS1 < Client]: Message recieved: " + msg)
+			print("[TLDS1 < Client]: Message recieved that is host: " + msg)
 			# send back correct answer
 			# FIXME RETURN IP ADDRESS HERE
-			cclientid.send("CORRECT ANSWER".encode('utf-8'))
-			print("[TLDS1 > Client]: Correct answer sent")
+		
+			foundHost = 0
+			st = ""
+
+			for i in range(numLinesInFile):
+				if (RSarr[i][0] == work):
+					print("FOUND HOST NAME")
+					foundHost = 1
+					st = RSarr[i][0] + " " + RSarr[i][1] + " " + RSarr[i][2]
+					print("Going to send to client" + st)
+					break
+			# send the result back
+			if foundHost == 0:
+				errorMessage = "Error"
+				print("sending error")
+				cclientid.send(errorMessage.encode('utf-8'))
+			else:
+				print("Sending host name details now ts")
+				cclientid.send(st.encode('utf-8'))
+				
+		  
+			#cclientid.send("CORRECT ANSWER".encode('utf-8'))
+			#print("[TLDS1 > Client]: Correct answer sent")
 			
 			print(" ")
 			

@@ -116,10 +116,15 @@ while True:
 		
 		#Confirmation who this is
 		msg = "ThisClient"
+		print("[C > TLDS1]: sending this to TLDS1 " + str(msg))
 		tlds1.send(msg.encode('utf-8'))
-		print("[C > TLDS1]: " + str(msg))
+		bleh = tlds1.recv(1024)
+		print("FROM TLDS! TO CLIENT: ", bleh.decode('utf-8'))
+		#send the host name
+		tlds1.send(splitList[2].encode('utf-8'))
+		print("[C > TLDS1]: now send host " + str(splitList[2]))
 		msgRecv = tlds1.recv(1024).decode('utf-8')
-		print("[C < TLDS1]: " + str(msgRecv))
+		print("[C < TLDS1]: recieved full value" + str(msgRecv))
 		# FIXME OUTPUT TO FILE
 		# send request for item
 		
@@ -140,7 +145,9 @@ while True:
 		# Confirmation who this is
 		msg = "ThisClient"
 		tlds2.send(msg.encode('utf-8'))
-		print("[C > TLDS2]: " + str(msg))
+		# send the host name
+		tlds1.send(splitList[2].encode('utf-8'))
+		print("[C > TLDS2]: " + str(splitList[2]))
 		msgRecv = tlds2.recv(1024).decode('utf-8')
 		print("[C < TLDS2]: " + str(msgRecv))
 		# FIXME OUTPUT TO FILE
