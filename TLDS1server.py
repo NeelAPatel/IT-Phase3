@@ -113,7 +113,7 @@ while 1:
 			cclientid.send("Ready for Host Name".encode('utf-8'))
 			print("SENT READY FOR HOST")
 			msg = cclientid.recv(1024).decode('utf-8')
-			print("[TLDS1 < Client]: Message recieved that is host: " + msg)
+			print("[TLDS1 < Client]: Message recieved that is host[" + msg)
 			# send back correct answer
 			# FIXME RETURN IP ADDRESS HERE
 		
@@ -121,7 +121,8 @@ while 1:
 			st = ""
 
 			for i in range(numLinesInFile):
-				if (RSarr[i][0] == work):
+				print("Currently looking at["+RSarr[i][0]+"] VS CURRENT HOST ["+msg+"]")
+				if (RSarr[i][0] == msg):
 					print("FOUND HOST NAME")
 					foundHost = 1
 					st = RSarr[i][0] + " " + RSarr[i][1] + " " + RSarr[i][2]
@@ -129,7 +130,7 @@ while 1:
 					break
 			# send the result back
 			if foundHost == 0:
-				errorMessage = "Error"
+				errorMessage = "Error: HOST NOT FOUND"
 				print("sending error")
 				cclientid.send(errorMessage.encode('utf-8'))
 			else:

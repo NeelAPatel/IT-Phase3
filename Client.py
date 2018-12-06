@@ -124,14 +124,10 @@ while True:
 		tlds1.send(splitList[2].encode('utf-8'))
 		print("[C > TLDS1]: now send host " + str(splitList[2]))
 		msgRecv = tlds1.recv(1024).decode('utf-8')
-		print("[C < TLDS1]: recieved full value" + str(msgRecv))
-		# FIXME OUTPUT TO FILE
-		# send request for item
+		print("[C < TLDS1]: recieved full value: " + str(msgRecv))
 		
-		# recieve IP
-		
-		# Print to Resolved.txt
-		#tlds.close()
+		strToFile = msgRecv + "\n"
+		fileOut.write(strToFile)
 	elif msg == "TLDS2":
 		if not tlds2Connected:
 			tlds2Connected = True
@@ -144,53 +140,19 @@ while True:
 	
 		# Confirmation who this is
 		msg = "ThisClient"
+		print("[C > TLDS2]: sending this to TLDS2 " + str(msg))
 		tlds2.send(msg.encode('utf-8'))
+		bleh = tlds2.recv(1024)
+		print("FROM TLDS! TO CLIENT: ", bleh.decode('utf-8'))
 		# send the host name
-		tlds1.send(splitList[2].encode('utf-8'))
-		print("[C > TLDS2]: " + str(splitList[2]))
+		tlds2.send(splitList[2].encode('utf-8'))
+		print("[C > TLDS1]: now send host " + str(splitList[2]))
 		msgRecv = tlds2.recv(1024).decode('utf-8')
-		print("[C < TLDS2]: " + str(msgRecv))
-		# FIXME OUTPUT TO FILE
-	# === TLDS connection
-	# Socket to AS server
+		print("[C < TLDS1]: recieved full value: " + str(msgRecv))
+		
+		strToFile = msgRecv + "\n"
+		fileOut.write(strToFile)
 	
-
-	# connect to AS_SERVER
-	
-	
-	# Create Socket
-	# Open to TLDS based on what was recieved
-	# Connect
-	# Recieve
-	# Close
-	
-	# if msg == "TLDS1":
-	# 	if not TLDS1HostConnected:
-	# 		TLDS1HostConnected = True
-	# 		TLDS1Port = 40000
-	# 		TLDS1_ip = mysoc.gethostbyname(TLDS1HostName)
-	# 		server_bindingTLDS1 = (TLDS1_ip, TLDS1Port)
-	# 		TLDS1.connect(server_bindingTLDS1)
-	# 		print("[C]: Connected to TLDS1 Server")
-
-	# 	# send the hostname to both TLDS Servers 1
-	# 	print("[C > TLDS1] sending: " + challange)
-	# 	TLDS1.send(splitList[2].encode('utf-8'))
-	# 	data_from_TLDS1 = TLDS1.recv(1024)
-	# 	print("[C < TLDS1] received:  ", data_from_TLDS1.decode('utf-8'))
-	# 	msgTLDS1 = data_from_TLDS1.decode('utf-8')
-	# if not TLDS2HostConnected:
-	# 	TLDS2HostConnected = True
-	# 	TLDS2Port = 60000
-	# 	TLDS2_ip = mysoc.gethostbyname(TLDS2HostName)
-	# 	server_bindingTLDS2 = (TLDS2_ip, TLDS2Port)
-	# 	TLDS2.connect(server_bindingTLDS2)
-	# 	print("[C]: Connected to TLDS1 Server")
-
-	# # output the string to result file
-	# strToFile = msg + "\n"
-	# fileOut.write(strToFile)
-	# print("[C]: Line is VALID: ", msg)
 
 	print("")
 
