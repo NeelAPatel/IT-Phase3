@@ -49,8 +49,8 @@ except mysoc.error as err:
 
 
 #FIXME will need to change when testing on different machine- not my host
-TLDS1HostName = mysoc.gethostname() #65500
-TLDS2HostName = mysoc.gethostname() #60000
+TLDS1HostName = "cpp.cs.rutgers.edu" #65500
+TLDS2HostName = "java.cs.rutgers.edu" #60000
 TLDS1HostConnected = False
 TLDS2HostConnected = False
 
@@ -94,7 +94,7 @@ while 1:
 			TLDS2_ip = mysoc.gethostbyname(TLDS2HostName)
 			server_bindingTLDS2 = (TLDS2_ip, TLDS2Port)
 			TLDS2.connect(server_bindingTLDS2)
-			print("[C]: Connected to TLDS1 Server")
+			print("[C]: Connected to TLDS2 Server")
 		
 		# send the hostname to both TLDS Servers 1
 		

@@ -108,7 +108,8 @@ while True:
 		if not tlds1Connected:
 			tlds1Connected = True
 			tlds1Port = 40000
-			tlds1_ip = mysoc.gethostbyname(mysoc.gethostname())  # FIXME CHANGE TO TLDS LOCATION
+			tlds1_ip = mysoc.gethostbyname("cpp.cs.rutgers.edu")  # FIXME CHANGE TO TLDS LOCATION
+			
 			print(tlds1_ip)
 			server_bindingTLDS1 = (tlds1_ip, tlds1Port)
 			tlds1.connect(server_bindingTLDS1)  # RS will be waiting for connection
@@ -132,7 +133,7 @@ while True:
 		if not tlds2Connected:
 			tlds2Connected = True
 			tlds2Port = 40100
-			tlds2_ip = mysoc.gethostbyname(mysoc.gethostname())  # FIXME CHANGE TO TLDS LOCATION
+			tlds2_ip = mysoc.gethostbyname("java.cs.rutgers.edu")  # FIXME CHANGE TO TLDS LOCATION
 			print(tlds2_ip)
 			server_bindingTLDS = (tlds2_ip, tlds2Port)
 			tlds2.connect(server_bindingTLDS)  # RS will be waiting for connection
