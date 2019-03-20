@@ -121,12 +121,13 @@ while 1:
 			
 			for i in range(numLinesInFile):
 				print("Currently looking at[" + RSarr[i][0] + "] VS CURRENT HOST [" + msg + "]")
-				if (RSarr[i][0] == msg):
-					print("FOUND HOST NAME")
-					foundHost = 1
-					st = RSarr[i][0] + " " + RSarr[i][1] + " " + RSarr[i][2]
-					print("Going to send to client" + st)
-					break
+				if RSarr[i][2] != "NS":
+					if (RSarr[i][0] == msg):
+						print("FOUND HOST NAME")
+						foundHost = 1
+						st = RSarr[i][0] + " " + RSarr[i][1] + " " + RSarr[i][2]
+						print("Going to send to client" + st)
+						break
 			# send the result back
 			if foundHost == 0:
 				errorMessage = "Error: HOST NOT FOUND"
